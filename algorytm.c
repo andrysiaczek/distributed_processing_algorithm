@@ -242,6 +242,7 @@ int main( int argc, char *argv[] )
 					}
 					printf("%d: Wyszłam z sekcji krytycznej w szatni: %d\n", rank, chosen_locker);
 					try_critical = FALSE;
+					priority = 0;
 					// MPI_Waitall(numtasks-1, reqs_send, status_send);
 				}
 			}
