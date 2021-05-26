@@ -57,13 +57,13 @@ int main( int argc, char *argv[] )
 		if (rank == 0) // #TODO remove - used for debugging
 		{
 			for (int i = 0; i < sizeof(L)/sizeof(int); i++){
-				print("L%d = %d.\n", i, L[i]);
+				printf("L%d = %d.\n", i, L[i]);
 			}
 			for (int i = 0; i < sizeof(T)/sizeof(int); i++){
-				print("T%d = %d.\n", i, T[i]);
+				printf("T%d = %d.\n", i, T[i]);
 			}
 			for (int i = 0; i < sizeof(B)/sizeof(int); i++){
-				print("B%d = %d.\n", i, B[i]);
+				printf("B%d = %d.\n", i, B[i]);
 			}
 		}
 
