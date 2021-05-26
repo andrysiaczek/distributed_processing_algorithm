@@ -305,7 +305,7 @@ int main( int argc, char *argv[] )
 		}	
 	}
 
-	print("byeee\n");
+	printf("byeee\n");
 	MPI_Finalize(); // terminates the MPI execution environment
 }
 
