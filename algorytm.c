@@ -219,6 +219,7 @@ int main( int argc, char *argv[] )
 						{
 							release = chosen_locker;
 							MPI_Isend(&release, 1, MPI_INT, i, RELEASE, MPI_COMM_WORLD, &reqs_send[i-minus]);
+							printf("%d: Wysyłam informację o zwolnieniu zasobów w szatni %d.\n", rank, chosen_locker);
 						}
 						else
 						{
