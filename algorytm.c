@@ -145,7 +145,7 @@ int main( int argc, char *argv[] )
 					num_consents = numtasks - (M - L[chosen_locker]);
 				}
 				// printf("%d: Czekam na dostarczenie moich żądań o wejście do szatni: %d.\n", rank, chosen_locker); #TODO remove line
-				// MPI_Waitall(numtasks-1, reqs_send, status_send); #TODO leave or remove?
+				MPI_Waitall(numtasks-1, reqs_send, status_send); #TODO leave or remove?
 			}
 		}
 
