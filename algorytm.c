@@ -47,14 +47,14 @@ int main( int argc, char *argv[] )
 	int flag; // the flag of the MPI_Iprobe test for a message
 
 	int *consent_queue = (int *)malloc(sizeof(int)*numtasks); // the queue of overdue consents
-	for (int i = 0; i < numtasks; i++){
+	for (int i = 0; i < numtasks; i++){ // initialize the consent_queue values with 0
 		consent_queue[i] = 0;
 	}
 
 	// printf("%d: Liczba miejsc w szatni: %d, a liczba procesow: %d\n", rank, M, numtasks); #TODO remove line
 	while (1)
 	{
-		if (!try_critical && rand() % 5 == 0) // 20% chance to try to enter critical section
+		if (!try_critical && rand() % 4 == 0) // 25% chance to try to enter critical section
 		{
 			try_critical = TRUE; // from now on the process tries to get to critical section
 
@@ -130,8 +130,8 @@ int main( int argc, char *argv[] )
 				{
 					num_consents = numtasks - (M - L[chosen_locker]);
 				}
-				printf("%d: Czekam na dostarczenie moich żądań o wejście do szatni: %d.\n", rank, chosen_locker);
-				// MPI_Waitall(numtasks-1, reqs_send, status_send);
+				// printf("%d: Czekam na dostarczenie moich żądań o wejście do szatni: %d.\n", rank, chosen_locker); #TODO remove line
+				// MPI_Waitall(numtasks-1, reqs_send, status_send); #TODO leave or remove?
 			}
 		}
 
