@@ -245,6 +245,8 @@ int main( int argc, char *argv[] )
 		}
 		else if (status.MPI_TAG == CRITICAL) // critical message received
 		{
+			printf("%d: Dostałem informację o wejsciu do sekcji krytycznej do szatni nr %d od procesu %d.\n", rank, message[1], status.MPI_SOURCE);
+
 			int process_sex = message[0];
 			int process_locker_number = message[1];
 
