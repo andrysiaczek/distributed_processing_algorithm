@@ -54,18 +54,18 @@ int main( int argc, char *argv[] )
 	// printf("%d: Liczba miejsc w szatni: %d, a liczba procesow: %d\n", rank, M, numtasks); #TODO remove line
 	while (1)
 	{
-		if (rank == 0) // #TODO remove - used for debugging
-		{
-			for (int i = 0; i < sizeof(L)/sizeof(int); i++){
-				printf("L%d = %d.\n", i, L[i]);
-			}
-			for (int i = 0; i < sizeof(T)/sizeof(int); i++){
-				printf("T%d = %d.\n", i, T[i]);
-			}
-			for (int i = 0; i < sizeof(B)/sizeof(int); i++){
-				printf("B%d = %d.\n", i, B[i]);
-			}
-		}
+		// if (rank == 0) // #TODO remove - used for debugging
+		// {
+		// 	for (int i = 0; i < sizeof(L)/sizeof(int); i++){
+		// 		printf("L%d = %d.\n", i, L[i]);
+		// 	}
+		// 	for (int i = 0; i < sizeof(T)/sizeof(int); i++){
+		// 		printf("T%d = %d.\n", i, T[i]);
+		// 	}
+		// 	for (int i = 0; i < sizeof(B)/sizeof(int); i++){
+		// 		printf("B%d = %d.\n", i, B[i]);
+		// 	}
+		// }
 
 
 		if (!try_critical && rand() % 4 == 0) // 25% chance to try to enter critical section
