@@ -126,7 +126,7 @@ int main( int argc, char *argv[] )
 					int minus = 0;
 					if (i != rank) // if not itself
 					{
-						request[0] = ++priority;
+						request[0] = priority++;
 						request[1] = chosen_locker;
 						MPI_Isend(&request, 2, MPI_INT, i, REQUEST, MPI_COMM_WORLD, &reqs_send[i-minus]);
 					}
