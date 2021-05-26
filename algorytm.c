@@ -210,7 +210,7 @@ int main( int argc, char *argv[] )
 					}
 					MPI_Waitall(count+1, reqs_send, status_send);
 
-					sleep(rand() % 5); // sleep no longer than 4 seconds
+					// sleep(rand() % 5); // sleep no longer than 4 seconds #TODO sleep function can't be used in critical section
 
 					for (int i = 0; i < numtasks; i++) // send release message to other processes
 					{
@@ -227,7 +227,7 @@ int main( int argc, char *argv[] )
 					}
 					printf("%d: Wyszłam z sekcji krytycznej w szatni: %d\n", rank, chosen_locker);
 					try_critical = FALSE;
-					MPI_Waitall(numtasks-1, reqs_send, status_send);
+					// MPI_Waitall(numtasks-1, reqs_send, status_send);
 				}
 			}
 		}
