@@ -62,6 +62,13 @@ int main( int argc, char *argv[] )
 		{
 			try_critical = TRUE; // from now on the process tries to get to critical section
 
+			if (rank == 0) // TODO remove if
+			{
+				printf("Typ szatni 0: %d.\n", T[0]);
+				printf("Typ szatni 1: %d.\n", T[1]);
+				printf("Typ szatni 2: %d.\n", T[2]);
+			}
+
 			for (int i = 0; i < sizeof(L)/sizeof(int); i++)  // iterate over locker rooms
 			{
 				if (T[i] == sex && L[i] != M) // if the same sex and not full
