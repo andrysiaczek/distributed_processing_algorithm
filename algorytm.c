@@ -19,7 +19,7 @@ int main( int argc, char *argv[] )
 {
     int priority = 0; // the priority of the process
     int L[3] = { 0 }; // the number of occupied lockers in each locker room
-    int T[3] = { EMPTY, EMPTY, EMPTY }; // the type of each locker room (-1)-empty 0-male 1-female
+    int T[3] = { MALE, MALE, MALE }; // the type of each locker room (-1)-empty 0-male 1-female
 	int B[3] = { FALSE }; // if the locker rooms are blocked 0-false 1-true
 	char *arg = argv[1];
   	int M = atoi(arg); // the number of lockers in each locker room
