@@ -126,7 +126,7 @@ void consent_message_received(int rank, int source_process, int *try_critical, i
 			// MPI_Waitall(count+1, reqs_send, status_send);
 
 			// sleep(rand() % 21); // sleep no longer than 20 seconds #TODO sleep function can't be used in critical section // #TODO remove line
-			*critical_count = 100;
+			*critical_count = 1000000;
 			*try_critical = FALSE;
 			*priority = 0;
 		}
@@ -241,7 +241,6 @@ int main( int argc, char *argv[] )
 			for (int i = 0; i < tasks; i++)
 			{
 				printf("Proces %d był już %d razy w sekcji krytycznej.\n", i, sum_critical[i]);
-				printf("Proces %d ma %d zaległych zgod do rozesłania.\n", i, overdue_consents[i]);
 			}
 		}
 		if (critical_count > 0) // if process in the critical section
@@ -284,9 +283,10 @@ int main( int argc, char *argv[] )
 				for (int i = 0; i < tasks; i++) // send block message to other processes
 				{
 					int minus = 0;
+					priority += 1;
 					if (i != rank) // if not itself
 					{
-						block[0] = ++priority;
+						block[0] = priority;
 						block[1] = chosen_locker;
 						// MPI_Isend(&block, 2, MPI_INT, i, BLOCK, MPI_COMM_WORLD, &reqs_send[i-minus]);
 						MPI_Send(&block, 2, MPI_INT, i, BLOCK, MPI_COMM_WORLD);
@@ -306,9 +306,10 @@ int main( int argc, char *argv[] )
 				for (int i = 0; i < tasks; i++) // send request message to other processes
 				{
 					int minus = 0;
+					priority += 1;
 					if (i != rank) // if not itself
 					{
-						request[0] = ++priority;
+						request[0] = priority;
 						request[1] = chosen_locker;
 						request[2] = sex;
 						// MPI_Isend(&request, 3, MPI_INT, i, REQUEST, MPI_COMM_WORLD, &reqs_send[i-minus]);
