@@ -62,7 +62,8 @@ int main( int argc, char *argv[] )
 		if (!try_critical && rand() % 4 == 0) // 25% chance to try to enter critical section
 		{
 			try_critical = TRUE; // from now on the process tries to get to critical section
-
+			priority += 1;
+			
 			for (int i = 0; i < sizeof(L)/sizeof(int); i++)  // iterate over locker rooms
 			{
 				if (T[i] == sex && L[i] != M) // if the same sex and not full
@@ -124,14 +125,14 @@ int main( int argc, char *argv[] )
 						request[2] = sex;
 						// MPI_Isend(&request, 3, MPI_INT, i, REQUEST, MPI_COMM_WORLD, &reqs_send[i-minus]);
 						MPI_Send(&request, 3, MPI_INT, i, REQUEST, MPI_COMM_WORLD);
-						printf("%d: Wysyłam prośbę z priorytetem %d o wejście do szatni %d do procesu: %d.\n", rank, priority , chosen_locker, i);
+						//printf("%d: Wysyłam prośbę z priorytetem %d o wejście do szatni %d do procesu: %d.\n", rank, priority , chosen_locker, i);
 					}
 					else
 					{
 						minus = 1;
 					}
 				}
-				printf("%d: Próbuję dostać się do szatni: %d o typie: %d.\n", rank, chosen_locker, T[chosen_locker]);
+				// printf("%d: Próbuję dostać się do szatni: %d o typie: %d.\n", rank, chosen_locker, T[chosen_locker]);
 
 				if (B[chosen_locker] == 1 || T[chosen_locker] == EMPTY){
 					num_consents = numtasks-1;
@@ -143,7 +144,6 @@ int main( int argc, char *argv[] )
 				// printf("%d: Czekam na dostarczenie moich żądań o wejście do szatni: %d.\n", rank, chosen_locker); #TODO remove line
 				// MPI_Waitall(numtasks-1, reqs_send, status_send); // #TODO leave or remove?
 			}
-			priority += 1;
 		}
 
 		MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status); // check if there is a message for the process to be received
@@ -163,14 +163,15 @@ int main( int argc, char *argv[] )
 			int process_locker_number = message[1];
 			int process_sex = message[2];
 
-			printf("%d: Dostałem żądanie od procesu %d z priorytetem %d.\n", rank, status.MPI_SOURCE, process_priority);
+			//printf("%d: Dostałem żądanie od procesu %d z priorytetem %d.\n", rank, status.MPI_SOURCE, process_priority);
 
 			if (process_locker_number == chosen_locker)
 			{
+				//printf("%d: process_priority: %d, my_priority: %d, process_rank: %d, my_rank: %d.\n", rank, process_priority, priority, status.MPI_SOURCE, rank);
 				if (process_priority > priority || (process_priority == priority && status.MPI_SOURCE > rank))
 				{
 					MPI_Send(&consent, 0, MPI_INT, status.MPI_SOURCE, CONSENT, MPI_COMM_WORLD); // sending back consent
-					printf("%d: Odsyłam zgodę procesowi: %d na wejście do szatni %d.\n", rank, status.MPI_SOURCE, process_locker_number);
+					//printf("%d: Odsyłam zgodę procesowi: %d na wejście do szatni %d.\n", rank, status.MPI_SOURCE, process_locker_number);
 					if (process_sex != sex) // if two processes with different sex want to enter the same locker room
 					{
 						T[chosen_locker] = process_sex;
@@ -181,26 +182,26 @@ int main( int argc, char *argv[] )
 				else
 				{
 					consent_queue[status.MPI_SOURCE] = TRUE;
-					printf("%d: Dopisuję proces %d do mojej oczekujacej listy.\n", rank, status.MPI_SOURCE);
+					//printf("%d: Dopisuję proces %d do mojej oczekujacej listy.\n", rank, status.MPI_SOURCE);
 				}
 			}
 			else
 			{
 				T[process_locker_number] = process_sex;
 				MPI_Send(&consent, 0, MPI_INT, status.MPI_SOURCE, CONSENT, MPI_COMM_WORLD); // sending back consent
-				printf("%d: Odsyłam zgodę procesowi: %d na wejście do szatni %d.\n", rank, status.MPI_SOURCE, process_locker_number);
+				//printf("%d: Odsyłam zgodę procesowi: %d na wejście do szatni %d.\n", rank, status.MPI_SOURCE, process_locker_number);
 			}
 		}
 		else if (status.MPI_TAG == CONSENT) // consent message received
 		{
-			printf("%d: Dostałem zgodę od procesu %d.\n", rank, status.MPI_SOURCE);
+			//printf("%d: Dostałem zgodę od procesu %d.\n", rank, status.MPI_SOURCE);
 
 			if (try_critical)
 			{
 				num_consents -= 1;
 				// priority += 1;
 				
-				printf("%d: Teraz mam priorytet %d.\n", rank, priority);
+				//printf("%d: Teraz mam priorytet %d.\n", rank, priority);
 				if (num_consents == 0)
 				{
 					// critical section
@@ -213,7 +214,7 @@ int main( int argc, char *argv[] )
 							critical[1] = chosen_locker;
 							// MPI_Isend(&critical, 2, MPI_INT, i, CRITICAL, MPI_COMM_WORLD, &reqs_send[i-minus]);
 							MPI_Send(&critical, 2, MPI_INT, i, CRITICAL, MPI_COMM_WORLD);
-							printf("%d: Wysyłam informację o wejściu do sekcji krytycznej w szatni %d procesowi: %d.\n", rank, chosen_locker, i);
+					//		printf("%d: Wysyłam informację o wejściu do sekcji krytycznej w szatni %d procesowi: %d.\n", rank, chosen_locker, i);
 						}
 						else
 						{
@@ -230,7 +231,7 @@ int main( int argc, char *argv[] )
 						if (consent_queue[i]){
 							// MPI_Isend(&consent, 0, MPI_INT, i, CONSENT, MPI_COMM_WORLD, &reqs_send[count]); // sending back overdue consent
 							MPI_Send(&consent, 0, MPI_INT, i, CONSENT, MPI_COMM_WORLD); // sending back overdue consent
-							printf("%d: Rozsyłam zaległa zgodę dla procesu: %d.\n", rank, i);
+					//		printf("%d: Rozsyłam zaległa zgodę dla procesu: %d.\n", rank, i);
 							count++;
 						}
 					}
@@ -246,7 +247,7 @@ int main( int argc, char *argv[] )
 							release = chosen_locker;
 							// MPI_Isend(&release, 1, MPI_INT, i, RELEASE, MPI_COMM_WORLD, &reqs_send[i-minus]);
 							MPI_Send(&release, 1, MPI_INT, i, RELEASE, MPI_COMM_WORLD);
-							printf("%d: Wysyłam informację o zwolnieniu zasobów w szatni %d do procesu: %d.\n", rank, chosen_locker, i);
+						//	printf("%d: Wysyłam informację o zwolnieniu zasobów w szatni %d do procesu: %d.\n", rank, chosen_locker, i);
 						}
 						else
 						{
@@ -262,7 +263,7 @@ int main( int argc, char *argv[] )
 		}
 		else if (status.MPI_TAG == RELEASE) // release message received
 		{
-			printf("%d: Dostałem informację o zwolnieniu zasobów od procesu %d.\n", rank, status.MPI_SOURCE);
+			//printf("%d: Dostałem informację o zwolnieniu zasobów od procesu %d.\n", rank, status.MPI_SOURCE);
 
 			int process_locker_number = message[0];
 			L[process_locker_number]--;
@@ -273,7 +274,7 @@ int main( int argc, char *argv[] )
 		}
 		else if (status.MPI_TAG == CRITICAL) // critical message received
 		{
-			printf("%d: Dostałem informację o wejsciu do sekcji krytycznej do szatni nr %d od procesu %d.\n", rank, message[1], status.MPI_SOURCE);
+			//printf("%d: Dostałem informację o wejsciu do sekcji krytycznej do szatni nr %d od procesu %d.\n", rank, message[1], status.MPI_SOURCE);
 
 			int process_sex = message[0];
 			int process_locker_number = message[1];
@@ -299,7 +300,7 @@ int main( int argc, char *argv[] )
 		}
 		else if (status.MPI_TAG == BLOCK) // block message received
 		{
-			printf("%d: Dostałem informację o zablokowaniu szatni nr %d od procesu %d.\n", rank, message[1], status.MPI_SOURCE);
+			//printf("%d: Dostałem informację o zablokowaniu szatni nr %d od procesu %d.\n", rank, message[1], status.MPI_SOURCE);
 
 			int process_priority = message[0];
 			int process_locker_number = message[1];
