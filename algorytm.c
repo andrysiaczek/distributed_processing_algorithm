@@ -27,7 +27,7 @@ int main( int argc, char *argv[] )
 	int numtasks; // the number of all tasks
 	char processor_name[MPI_MAX_PROCESSOR_NAME]; // the buffer for the processor name
 	int proc_namelen; // the length of the processor name
-	int request[2], consent, critical[2], release, block[2]; // buffers for different types of messages
+	int request[3], consent, critical[2], release, block[2]; // buffers for different types of messages
 	int message[3]; // buffer to receive message with unknown tag
 	int try_critical = FALSE; // set try to get to critical section to 0 - false
 	int chosen_locker = -1; // the number of the locker room the process is trying to access
@@ -120,8 +120,9 @@ int main( int argc, char *argv[] )
 					{
 						request[0] = ++priority;
 						request[1] = chosen_locker;
-						// MPI_Isend(&request, 2, MPI_INT, i, REQUEST, MPI_COMM_WORLD, &reqs_send[i-minus]);
-						MPI_Send(&request, 2, MPI_INT, i, REQUEST, MPI_COMM_WORLD);
+						request[2] = sex;
+						// MPI_Isend(&request, 3, MPI_INT, i, REQUEST, MPI_COMM_WORLD, &reqs_send[i-minus]);
+						MPI_Send(&request, 3, MPI_INT, i, REQUEST, MPI_COMM_WORLD);
 						printf("%d: Wysyłam prośbę o wejście do szatni %d do procesu: %d.\n", rank, chosen_locker, i);
 					}
 					else
@@ -160,7 +161,7 @@ int main( int argc, char *argv[] )
 			
 			int process_priority = message[0];
 			int process_locker_number = message[1];
-			int process_sex = message[3];
+			int process_sex = message[2];
 
 			if (process_locker_number == chosen_locker)
 			{
@@ -170,6 +171,7 @@ int main( int argc, char *argv[] )
 					printf("%d: Odsyłam zgodę procesowi: %d na wejście do szatni %d.\n", rank, status.MPI_SOURCE, process_locker_number);
 					if (process_sex != sex) // if two processes with different sex want to enter the same locker room
 					{
+						printf("Process sex: %d.\n", process_sex);
 						T[chosen_locker] = process_sex;
 						try_critical = FALSE;
 						chosen_locker = -1;
@@ -183,6 +185,7 @@ int main( int argc, char *argv[] )
 			}
 			else
 			{
+				printf("Process sex: %d.\n", process_sex);
 				T[process_locker_number] = process_sex;
 				MPI_Send(&consent, 0, MPI_INT, status.MPI_SOURCE, CONSENT, MPI_COMM_WORLD); // sending back consent
 				printf("%d: Odsyłam zgodę procesowi: %d na wejście do szatni %d.\n", rank, status.MPI_SOURCE, process_locker_number);
@@ -283,6 +286,7 @@ int main( int argc, char *argv[] )
 			}
 			if (T[process_locker_number] == EMPTY)
 			{
+				printf("Process critical sex: %d.\n", process_sex);
 				T[process_locker_number] = process_sex;
 			}
 			else if (B[process_locker_number] && process_sex == T[process_locker_number])
