@@ -145,9 +145,10 @@ void release_message_received(int rank, int source_process, int process_locker_n
 	}
 }
 
-void critical_message_received(int rank, int source_process, int *message, int *L, int M, int *T, int *B, int *overdue_consents)
+void critical_message_received(int rank, int source_process, int *message, int *L, int M, int *T, int *B, int *overdue_consents, int *sum_critical)
 {
 	// printf("%d: Dostałem informację o wejsciu do sekcji krytycznej do szatni nr %d od procesu %d.\n", rank, message[1], source_process);
+	sum_critical[source_process] += 1;
 
 	int process_sex = message[0];
 	int process_locker_number = message[1];
@@ -204,7 +205,6 @@ int main( int argc, char *argv[] )
 	int message[3]; // buffer to receive message with unknown tag
 	int try_critical = FALSE; // initialize variable 'try to get to the critical section' to FALSE
 	int critical_count = 0; // how many iterations left to leave the critical section
-	int sum_critical = 0; // how many times in the critical section #TODO remove line
 	int chosen_locker = -1; // the number of the locker room the process is trying to access
 	int num_consents = -1; // the number of required consents to enter the critical section
 
@@ -224,16 +224,25 @@ int main( int argc, char *argv[] )
     int sex = rand() % 2; // the pseudo-randomly chosen sex of the process 0-MALE 1-FEMALE
     // int priority = rand() % 10; // the priority of the process - initialized with random number between 0-9
 	int priority = 0; // the priority of the process - initialized with 0
+	int *sum_critical = (int *)malloc(sizeof(int)*tasks); // how many times in the critical section #TODO remove line
 
 	int *overdue_consents = (int *)malloc(sizeof(int)*tasks); // the queue of overdue consents
 	for (int i = 0; i < tasks; i++){ // initialize the overdue_consents values with 0
 		overdue_consents[i] = 0;
+		sum_critical[i] = 0; // #TODO remove line
 	}
 
 	printf("%d: Moja płeć: %d.\n", rank, sex);
 	// printf("%d: Liczba miejsc w szatni: %d, a liczba procesow: %d\n", rank, M, tasks); #TODO remove line
 	while (1)
 	{
+		if (rank == 0) // #TODO remove if
+		{
+			for (int i = 0; i < tasks; i++)
+			{
+				printf("Proces %d był już %d razy w sekcji krytycznej.\n", i, sum_critical[i]);
+			}
+		}
 		if (critical_count > 0) // if process in the critical section
 		{
 			critical_section(&critical_count, tasks, rank, chosen_locker); // execute critical section code
@@ -342,7 +351,7 @@ int main( int argc, char *argv[] )
 			break;
 
 		case CONSENT:
-			consent_message_received(rank, status.MPI_SOURCE, &try_critical, &num_consents, &priority, tasks, sex, chosen_locker, overdue_consents, &critical_count, &sum_critical);	
+			consent_message_received(rank, status.MPI_SOURCE, &try_critical, &num_consents, &priority, tasks, sex, chosen_locker, overdue_consents, &critical_count, sum_critical);	
 			break;
 		
 		case RELEASE:
@@ -350,7 +359,7 @@ int main( int argc, char *argv[] )
 			break;
 
 		case CRITICAL:
-			critical_message_received(rank, status.MPI_SOURCE, message, L, M, T, B, overdue_consents);
+			critical_message_received(rank, status.MPI_SOURCE, message, L, M, T, B, overdue_consents, sum_critical);
 			break;
 
 		case BLOCK:
