@@ -241,6 +241,7 @@ int main( int argc, char *argv[] )
 			for (int i = 0; i < tasks; i++)
 			{
 				printf("Proces %d był już %d razy w sekcji krytycznej.\n", i, sum_critical[i]);
+				printf("Proces %d ma %d zaległych zgod do rozesłania.\n", i, overdue_consents[i]);
 			}
 		}
 		if (critical_count > 0) // if process in the critical section
