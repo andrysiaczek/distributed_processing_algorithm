@@ -171,7 +171,6 @@ int main( int argc, char *argv[] )
 					printf("%d: Odsyłam zgodę procesowi: %d na wejście do szatni %d.\n", rank, status.MPI_SOURCE, process_locker_number);
 					if (process_sex != sex) // if two processes with different sex want to enter the same locker room
 					{
-						printf("Process sex: %d.\n", process_sex);
 						T[chosen_locker] = process_sex;
 						try_critical = FALSE;
 						chosen_locker = -1;
@@ -185,7 +184,6 @@ int main( int argc, char *argv[] )
 			}
 			else
 			{
-				printf("Process sex: %d.\n", process_sex);
 				T[process_locker_number] = process_sex;
 				MPI_Send(&consent, 0, MPI_INT, status.MPI_SOURCE, CONSENT, MPI_COMM_WORLD); // sending back consent
 				printf("%d: Odsyłam zgodę procesowi: %d na wejście do szatni %d.\n", rank, status.MPI_SOURCE, process_locker_number);
