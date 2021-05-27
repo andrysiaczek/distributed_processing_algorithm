@@ -231,7 +231,7 @@ int main( int argc, char *argv[] )
 					}
 					// MPI_Waitall(count+1, reqs_send, status_send);
 
-					// sleep(rand() % 5); // sleep no longer than 4 seconds #TODO sleep function can't be used in critical section
+					sleep(rand() % 21); // sleep no longer than 20 seconds #TODO sleep function can't be used in critical section
 
 					for (int i = 0; i < numtasks; i++) // send release message to other processes
 					{
