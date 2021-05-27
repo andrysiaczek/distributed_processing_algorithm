@@ -14,6 +14,32 @@
 #define FALSE 0
 #define TRUE 1
 
+void critical_section(int *in_critical, int numtasks, int rank, int chosen_locker)
+{
+	*in_critical -= 1; // decrease critical section counter by 1 in each iteration
+
+	if (!*in_critical) // if in_critical equals 0
+	{
+		for (int i = 0; i < numtasks; i++) // send release message to other processes
+		{
+			int minus = 0;
+			if (i != rank) // if not itself
+			{
+				int release = chosen_locker;
+				// MPI_Isend(&release, 1, MPI_INT, i, RELEASE, MPI_COMM_WORLD, &reqs_send[i-minus]); // #TODO remove line
+				MPI_Send(&release, 1, MPI_INT, i, RELEASE, MPI_COMM_WORLD);
+				printf("%d: Wysyłam informację o zwolnieniu zasobów w szatni %d do procesu: %d.\n", rank, chosen_locker, i);
+			}
+			else
+			{
+				minus = 1;
+			}
+		}
+		printf("%d: Wyszedłem z sekcji krytycznej w szatni: %d\n", rank, chosen_locker);
+		
+		// MPI_Waitall(numtasks-1, reqs_send, status_send); // #TODO remove line
+	}
+}
 
 int main( int argc, char *argv[] )
 {
@@ -61,29 +87,7 @@ int main( int argc, char *argv[] )
 	{
 		if (in_critical > 0)
 		{
-			in_critical -= 1;
-
-			if (!in_critical)
-			{
-				for (int i = 0; i < numtasks; i++) // send release message to other processes
-				{
-					int minus = 0;
-					if (i != rank) // if not itself
-					{
-						release = chosen_locker;
-						// MPI_Isend(&release, 1, MPI_INT, i, RELEASE, MPI_COMM_WORLD, &reqs_send[i-minus]);
-						MPI_Send(&release, 1, MPI_INT, i, RELEASE, MPI_COMM_WORLD);
-						printf("%d: Wysyłam informację o zwolnieniu zasobów w szatni %d do procesu: %d.\n", rank, chosen_locker, i);
-					}
-					else
-					{
-						minus = 1;
-					}
-				}
-				printf("%d: Wyszłam z sekcji krytycznej w szatni: %d\n", rank, chosen_locker);
-				
-				// MPI_Waitall(numtasks-1, reqs_send, status_send);
-			}
+			critical_section(&in_critical, numtasks, rank, chosen_locker); // execute critical section code
 		}
 		else if (!try_critical && rand() % 4 == 0) // 25% chance to try to enter critical section
 		{
