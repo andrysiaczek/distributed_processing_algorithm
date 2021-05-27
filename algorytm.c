@@ -58,6 +58,7 @@ int main( int argc, char *argv[] )
 	// printf("%d: Liczba miejsc w szatni: %d, a liczba procesow: %d\n", rank, M, numtasks); #TODO remove line
 	while (1)
 	{
+		sleep(1);
 		if (!try_critical && rand() % 4 == 0) // 25% chance to try to enter critical section
 		{
 			try_critical = TRUE; // from now on the process tries to get to critical section
@@ -123,7 +124,7 @@ int main( int argc, char *argv[] )
 						request[2] = sex;
 						// MPI_Isend(&request, 3, MPI_INT, i, REQUEST, MPI_COMM_WORLD, &reqs_send[i-minus]);
 						MPI_Send(&request, 3, MPI_INT, i, REQUEST, MPI_COMM_WORLD);
-						printf("%d: Wysyłam prośbę o wejście do szatni %d do procesu: %d.\n", rank, chosen_locker, i);
+						printf("%d: Wysyłam prośbę z priorytetem %d o wejście do szatni %d do procesu: %d.\n", rank, priority , chosen_locker, i);
 					}
 					else
 					{
@@ -157,11 +158,11 @@ int main( int argc, char *argv[] )
 		
 		if (status.MPI_TAG == REQUEST) // request message received
 		{
-			printf("%d: Dostałem żądanie od procesu %d.\n", rank, status.MPI_SOURCE);
-			
 			int process_priority = message[0];
 			int process_locker_number = message[1];
 			int process_sex = message[2];
+
+			printf("%d: Dostałem żądanie od procesu %d z priorytetem %d.\n", rank, status.MPI_SOURCE, process_priority);
 
 			if (process_locker_number == chosen_locker)
 			{
