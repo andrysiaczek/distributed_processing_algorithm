@@ -19,7 +19,7 @@ int main( int argc, char *argv[] )
 {
     int priority = 0; // the priority of the process
     int L[3] = { 0 }; // the number of occupied lockers in each locker room
-    int T[3] = { MALE, MALE, MALE }; // the type of each locker room (-1)-empty 0-male 1-female
+    int T[3] = { EMPTY, EMPTY, EMPTY }; // the type of each locker room (-1)-empty 0-male 1-female
 	int B[3] = { FALSE }; // if the locker rooms are blocked 0-false 1-true
 	char *arg = argv[1];
   	int M = atoi(arg); // the number of lockers in each locker room
@@ -162,17 +162,18 @@ int main( int argc, char *argv[] )
 			int process_locker_number = message[1];
 			int process_sex = message[3];
 
-			if (T[process_locker_number] == EMPTY)
-			{
-				T[process_locker_number] = process_sex;
-			}
-
 			if (process_locker_number == chosen_locker)
 			{
 				if (process_priority > priority || (process_priority == priority && status.MPI_SOURCE > rank))
 				{
 					MPI_Send(&consent, 0, MPI_INT, status.MPI_SOURCE, CONSENT, MPI_COMM_WORLD); // sending back consent
 					printf("%d: Odsyłam zgodę procesowi: %d na wejście do szatni %d.\n", rank, status.MPI_SOURCE, process_locker_number);
+					if (process_sex != sex) // if two processes with different sex want to enter the same locker room
+					{
+						T[chosen_locker] = process_sex;
+						try_critical = FALSE;
+						chosen_locker = -1;
+					}
 				}
 				else
 				{
@@ -182,6 +183,7 @@ int main( int argc, char *argv[] )
 			}
 			else
 			{
+				T[process_locker_number] = process_sex;
 				MPI_Send(&consent, 0, MPI_INT, status.MPI_SOURCE, CONSENT, MPI_COMM_WORLD); // sending back consent
 				printf("%d: Odsyłam zgodę procesowi: %d na wejście do szatni %d.\n", rank, status.MPI_SOURCE, process_locker_number);
 			}
