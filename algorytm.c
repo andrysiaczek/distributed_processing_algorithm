@@ -198,6 +198,8 @@ int main( int argc, char *argv[] )
 			{
 				num_consents -= 1;
 				priority += 1;
+				
+				printf("%d: Teraz mam priorytet %d.\n", rank, priority);
 				if (num_consents == 0)
 				{
 					// critical section
