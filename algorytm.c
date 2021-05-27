@@ -167,7 +167,7 @@ int main( int argc, char *argv[] )
 			
 			int process_priority = message[0];
 			int process_locker_number = message[1];
-			int process_sex = message[3];
+			int process_sex = message[2];
 
 			if (process_locker_number == chosen_locker)
 			{
