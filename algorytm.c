@@ -97,7 +97,7 @@ int main( int argc, char *argv[] )
 					int minus = 0;
 					if (i != rank) // if not itself
 					{
-						block[0] = ++priority;
+						block[0] = priority;
 						block[1] = chosen_locker;
 						// MPI_Isend(&block, 2, MPI_INT, i, BLOCK, MPI_COMM_WORLD, &reqs_send[i-minus]);
 						MPI_Send(&block, 2, MPI_INT, i, BLOCK, MPI_COMM_WORLD);
@@ -119,7 +119,7 @@ int main( int argc, char *argv[] )
 					int minus = 0;
 					if (i != rank) // if not itself
 					{
-						request[0] = ++priority;
+						request[0] = priority;
 						request[1] = chosen_locker;
 						request[2] = sex;
 						// MPI_Isend(&request, 3, MPI_INT, i, REQUEST, MPI_COMM_WORLD, &reqs_send[i-minus]);
@@ -143,6 +143,7 @@ int main( int argc, char *argv[] )
 				// printf("%d: Czekam na dostarczenie moich żądań o wejście do szatni: %d.\n", rank, chosen_locker); #TODO remove line
 				// MPI_Waitall(numtasks-1, reqs_send, status_send); // #TODO leave or remove?
 			}
+			priority += 1;
 		}
 
 		MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status); // check if there is a message for the process to be received
@@ -197,7 +198,7 @@ int main( int argc, char *argv[] )
 			if (try_critical)
 			{
 				num_consents -= 1;
-				priority += 1;
+				// priority += 1;
 				
 				printf("%d: Teraz mam priorytet %d.\n", rank, priority);
 				if (num_consents == 0)
