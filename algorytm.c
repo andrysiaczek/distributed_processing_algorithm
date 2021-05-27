@@ -28,7 +28,7 @@ void critical_section(int *critical_count, int tasks, int rank, int chosen_locke
 				int release = chosen_locker;
 				// MPI_Isend(&release, 1, MPI_INT, i, RELEASE, MPI_COMM_WORLD, &reqs_send[i-minus]); // #TODO remove line
 				MPI_Send(&release, 1, MPI_INT, i, RELEASE, MPI_COMM_WORLD);
-				printf("%d: Wysyłam informację o zwolnieniu zasobów w szatni %d do procesu: %d.\n", rank, chosen_locker, i);
+				// printf("%d: Wysyłam informację o zwolnieniu zasobów w szatni %d do procesu: %d.\n", rank, chosen_locker, i);
 			}
 			else
 			{
@@ -43,7 +43,7 @@ void critical_section(int *critical_count, int tasks, int rank, int chosen_locke
 
 void request_message_received(int rank, int source_process, int *message, int *chosen_locker, int priority, int sex, int *T, int *try_critical, int *overdue_consents)
 {
-	printf("%d: Dostałem żądanie od procesu %d.\n", rank, source_process);
+	// printf("%d: Dostałem żądanie od procesu %d.\n", rank, source_process);
 			
 	int process_priority = message[0];
 	int process_locker_number = message[1];
@@ -55,7 +55,7 @@ void request_message_received(int rank, int source_process, int *message, int *c
 		{
 			int consent;
 			MPI_Send(&consent, 0, MPI_INT, source_process, CONSENT, MPI_COMM_WORLD); // sending back consent
-			printf("%d: Odsyłam zgodę procesowi: %d na wejście do szatni %d.\n", rank, source_process, process_locker_number);
+			// printf("%d: Odsyłam zgodę procesowi: %d na wejście do szatni %d.\n", rank, source_process, process_locker_number);
 
 			if (process_sex != sex) // if two processes with different sex want to enter the same locker room
 			{
@@ -67,7 +67,7 @@ void request_message_received(int rank, int source_process, int *message, int *c
 		else
 		{
 			overdue_consents[source_process] = TRUE;
-			printf("%d: Dopisuję proces %d do mojej oczekujacej listy.\n", rank, source_process);
+			// printf("%d: Dopisuję proces %d do mojej oczekujacej listy.\n", rank, source_process);
 		}
 	}
 	else
@@ -75,13 +75,13 @@ void request_message_received(int rank, int source_process, int *message, int *c
 		T[process_locker_number] = process_sex;
 		int consent;
 		MPI_Send(&consent, 0, MPI_INT, source_process, CONSENT, MPI_COMM_WORLD); // sending back consent
-		printf("%d: Odsyłam zgodę procesowi: %d na wejście do szatni %d.\n", rank, source_process, process_locker_number);
+		// printf("%d: Odsyłam zgodę procesowi: %d na wejście do szatni %d.\n", rank, source_process, process_locker_number);
 	}
 }
 
 void consent_message_received(int rank, int source_process, int *try_critical, int *num_consents, int *priority, int tasks, int sex, int chosen_locker, int *overdue_consents, int *critical_count)
 {
-	printf("%d: Dostałem zgodę od procesu %d.\n", rank, source_process);
+	// printf("%d: Dostałem zgodę od procesu %d.\n", rank, source_process);
 
 	if (*try_critical)
 	{
@@ -100,7 +100,7 @@ void consent_message_received(int rank, int source_process, int *try_critical, i
 					critical[1] = chosen_locker;
 					// MPI_Isend(&critical, 2, MPI_INT, i, CRITICAL, MPI_COMM_WORLD, &reqs_send[i-minus]);
 					MPI_Send(&critical, 2, MPI_INT, i, CRITICAL, MPI_COMM_WORLD);
-					printf("%d: Wysyłam informację o wejściu do sekcji krytycznej w szatni %d procesowi: %d.\n", rank, chosen_locker, i);
+					// printf("%d: Wysyłam informację o wejściu do sekcji krytycznej w szatni %d procesowi: %d.\n", rank, chosen_locker, i);
 				}
 				else
 				{
@@ -118,7 +118,7 @@ void consent_message_received(int rank, int source_process, int *try_critical, i
 					int consent;
 					// MPI_Isend(&consent, 0, MPI_INT, i, CONSENT, MPI_COMM_WORLD, &reqs_send[count]); // sending back overdue consent
 					MPI_Send(&consent, 0, MPI_INT, i, CONSENT, MPI_COMM_WORLD); // sending back overdue consent
-					printf("%d: Rozsyłam zaległa zgodę dla procesu: %d.\n", rank, i);
+					// printf("%d: Rozsyłam zaległa zgodę dla procesu: %d.\n", rank, i);
 					count++;
 				}
 			}
@@ -134,7 +134,7 @@ void consent_message_received(int rank, int source_process, int *try_critical, i
 
 void release_message_received(int rank, int source_process, int process_locker_number, int *L, int *B, int *T)
 {
-	printf("%d: Dostałem informację o zwolnieniu zasobów od procesu %d.\n", rank, source_process);
+	// printf("%d: Dostałem informację o zwolnieniu zasobów od procesu %d.\n", rank, source_process);
 
 	L[process_locker_number] -= 1; // decrease number of occupied lockers
 
@@ -146,18 +146,18 @@ void release_message_received(int rank, int source_process, int process_locker_n
 
 void critical_message_received(int rank, int source_process, int *message, int *L, int M, int *T, int *B, int *overdue_consents)
 {
-	printf("%d: Dostałem informację o wejsciu do sekcji krytycznej do szatni nr %d od procesu %d.\n", rank, message[1], source_process);
+	// printf("%d: Dostałem informację o wejsciu do sekcji krytycznej do szatni nr %d od procesu %d.\n", rank, message[1], source_process);
 
 	int process_sex = message[0];
 	int process_locker_number = message[1];
 
 	L[process_locker_number] += 1;
 	if (L[process_locker_number] > M){ // #TODO usunac - potrzebne tylko do debuggowania
-		printf("%d: Szatnia: %d przepełniona. Więcej klientów niż dostępnych szafek. Ostatni wchodzący proces: %d.\n", rank, process_locker_number, source_process);
+		// printf("%d: Szatnia: %d przepełniona. Więcej klientów niż dostępnych szafek. Ostatni wchodzący proces: %d.\n", rank, process_locker_number, source_process);
 	}
 	if (T[process_locker_number] != process_sex && T[process_locker_number] != EMPTY) // #TODO usunac - potrzebne tylko do debuggowania
 	{
-		printf("%d: Przemieszanie płci w szatni: %d, która jest szatnią %d. Ostatni wchodzący proces: %d ma płeć %d.\n", rank, process_locker_number, T[process_locker_number], source_process, process_sex);
+		// printf("%d: Przemieszanie płci w szatni: %d, która jest szatnią %d. Ostatni wchodzący proces: %d ma płeć %d.\n", rank, process_locker_number, T[process_locker_number], source_process, process_sex);
 	}
 	if (T[process_locker_number] == EMPTY)
 	{
@@ -173,7 +173,7 @@ void critical_message_received(int rank, int source_process, int *message, int *
 
 void block_message_received(int rank, int source_process, int process_priority, int process_locker_number, int chosen_locker, int *overdue_consents, int *B, int *T)
 {
-	printf("%d: Dostałem informację o zablokowaniu szatni nr %d od procesu %d.\n", rank, process_locker_number, source_process);
+	// printf("%d: Dostałem informację o zablokowaniu szatni nr %d od procesu %d.\n", rank, process_locker_number, source_process);
 
 	if (process_locker_number == chosen_locker)
 	{
@@ -183,7 +183,7 @@ void block_message_received(int rank, int source_process, int process_priority, 
 	{
 		int consent;
 		MPI_Send(&consent, 0, MPI_INT, source_process, CONSENT, MPI_COMM_WORLD); // sending back consent
-		printf("%d: Wysyłam zgodę procesowi %d, ktory zablokował szatnię %d.\n", rank, source_process, process_locker_number);
+		// printf("%d: Wysyłam zgodę procesowi %d, ktory zablokował szatnię %d.\n", rank, source_process, process_locker_number);
 	}
 
 	B[process_locker_number] = TRUE;
@@ -277,7 +277,7 @@ int main( int argc, char *argv[] )
 						block[1] = chosen_locker;
 						// MPI_Isend(&block, 2, MPI_INT, i, BLOCK, MPI_COMM_WORLD, &reqs_send[i-minus]);
 						MPI_Send(&block, 2, MPI_INT, i, BLOCK, MPI_COMM_WORLD);
-						printf("%d: Blokuję szatnię %d - info dla procesu: %d.\n", rank, chosen_locker, i);
+						// printf("%d: Blokuję szatnię %d - info dla procesu: %d.\n", rank, chosen_locker, i);
 					}
 					else
 					{
@@ -300,14 +300,14 @@ int main( int argc, char *argv[] )
 						request[2] = sex;
 						// MPI_Isend(&request, 3, MPI_INT, i, REQUEST, MPI_COMM_WORLD, &reqs_send[i-minus]);
 						MPI_Send(&request, 3, MPI_INT, i, REQUEST, MPI_COMM_WORLD);
-						printf("%d: Wysyłam prośbę o wejście do szatni %d do procesu: %d.\n", rank, chosen_locker, i);
+						// printf("%d: Wysyłam prośbę o wejście do szatni %d do procesu: %d.\n", rank, chosen_locker, i);
 					}
 					else
 					{
 						minus = 1;
 					}
 				}
-				printf("%d: Próbuję dostać się do szatni: %d o typie: %d.\n", rank, chosen_locker, T[chosen_locker]);
+				// printf("%d: Próbuję dostać się do szatni: %d o typie: %d.\n", rank, chosen_locker, T[chosen_locker]);
 
 				if (B[chosen_locker] == 1 || T[chosen_locker] == EMPTY){
 					num_consents = tasks-1;
