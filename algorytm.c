@@ -98,7 +98,8 @@ int main( int argc, char *argv[] )
 					{
 						block[0] = ++priority;
 						block[1] = chosen_locker;
-						MPI_Isend(&block, 2, MPI_INT, i, BLOCK, MPI_COMM_WORLD, &reqs_send[i-minus]);
+						// MPI_Isend(&block, 2, MPI_INT, i, BLOCK, MPI_COMM_WORLD, &reqs_send[i-minus]);
+						MPI_Send(&block, 2, MPI_INT, i, BLOCK, MPI_COMM_WORLD);
 						printf("%d: Blokuję szatnię %d - info dla procesu: %d.\n", rank, chosen_locker, i);
 					}
 					else
@@ -107,7 +108,7 @@ int main( int argc, char *argv[] )
 					}
 				}
 				// printf("%d: Zablokowałem szatnię nr: %d. Moja płeć to: %d\n", rank, chosen_locker, sex); // #TODO remove line
-				MPI_Waitall(numtasks-1, reqs_send, status_send);
+				// MPI_Waitall(numtasks-1, reqs_send, status_send);
 				num_consents = numtasks-1;
 			}
 			else
@@ -119,7 +120,8 @@ int main( int argc, char *argv[] )
 					{
 						request[0] = ++priority;
 						request[1] = chosen_locker;
-						MPI_Isend(&request, 2, MPI_INT, i, REQUEST, MPI_COMM_WORLD, &reqs_send[i-minus]);
+						// MPI_Isend(&request, 2, MPI_INT, i, REQUEST, MPI_COMM_WORLD, &reqs_send[i-minus]);
+						MPI_Send(&request, 2, MPI_INT, i, REQUEST, MPI_COMM_WORLD);
 						printf("%d: Wysyłam prośbę o wejście do szatni %d do procesu: %d.\n", rank, chosen_locker, i);
 					}
 					else
@@ -137,7 +139,7 @@ int main( int argc, char *argv[] )
 					num_consents = numtasks - (M - L[chosen_locker]);
 				}
 				// printf("%d: Czekam na dostarczenie moich żądań o wejście do szatni: %d.\n", rank, chosen_locker); #TODO remove line
-				MPI_Waitall(numtasks-1, reqs_send, status_send); // #TODO leave or remove?
+				// MPI_Waitall(numtasks-1, reqs_send, status_send); // #TODO leave or remove?
 			}
 		}
 
@@ -202,7 +204,8 @@ int main( int argc, char *argv[] )
 						{
 							critical[0] = sex;
 							critical[1] = chosen_locker;
-							MPI_Isend(&critical, 2, MPI_INT, i, CRITICAL, MPI_COMM_WORLD, &reqs_send[i-minus]);
+							// MPI_Isend(&critical, 2, MPI_INT, i, CRITICAL, MPI_COMM_WORLD, &reqs_send[i-minus]);
+							MPI_Send(&critical, 2, MPI_INT, i, CRITICAL, MPI_COMM_WORLD);
 							printf("%d: Wysyłam informację o wejściu do sekcji krytycznej w szatni %d procesowi: %d.\n", rank, chosen_locker, i);
 						}
 						else
@@ -211,19 +214,20 @@ int main( int argc, char *argv[] )
 						}
 					}
 					printf("%d: Wszedłem do sekcji krytycznej w szatni: %d\n", rank, chosen_locker);
-					MPI_Waitall(numtasks-1, reqs_send, status_send);
+					// MPI_Waitall(numtasks-1, reqs_send, status_send);
 
 					// #TODO czy wysylanie zgod dobrze zaimplementowane?
 					int count = 0;
 					for (int i = 0; i < numtasks; i++)
 					{
 						if (consent_queue[i]){
-							MPI_Isend(&consent, 0, MPI_INT, i, CONSENT, MPI_COMM_WORLD, &reqs_send[count]); // sending back overdue consent
+							// MPI_Isend(&consent, 0, MPI_INT, i, CONSENT, MPI_COMM_WORLD, &reqs_send[count]); // sending back overdue consent
+							MPI_Send(&consent, 0, MPI_INT, i, CONSENT, MPI_COMM_WORLD); // sending back overdue consent
 							printf("%d: Rozsyłam zaległa zgodę dla procesu: %d.\n", rank, i);
 							count++;
 						}
 					}
-					MPI_Waitall(count+1, reqs_send, status_send);
+					// MPI_Waitall(count+1, reqs_send, status_send);
 
 					// sleep(rand() % 5); // sleep no longer than 4 seconds #TODO sleep function can't be used in critical section
 
@@ -233,7 +237,8 @@ int main( int argc, char *argv[] )
 						if (i != rank) // if not itself
 						{
 							release = chosen_locker;
-							MPI_Isend(&release, 1, MPI_INT, i, RELEASE, MPI_COMM_WORLD, &reqs_send[i-minus]);
+							// MPI_Isend(&release, 1, MPI_INT, i, RELEASE, MPI_COMM_WORLD, &reqs_send[i-minus]);
+							MPI_Send(&release, 1, MPI_INT, i, RELEASE, MPI_COMM_WORLD);
 							printf("%d: Wysyłam informację o zwolnieniu zasobów w szatni %d do procesu: %d.\n", rank, chosen_locker, i);
 						}
 						else
@@ -244,7 +249,7 @@ int main( int argc, char *argv[] )
 					printf("%d: Wyszłam z sekcji krytycznej w szatni: %d\n", rank, chosen_locker);
 					try_critical = FALSE;
 					priority = 0;
-					MPI_Waitall(numtasks-1, reqs_send, status_send);
+					// MPI_Waitall(numtasks-1, reqs_send, status_send);
 				}
 			}
 		}
