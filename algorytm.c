@@ -284,7 +284,6 @@ int main( int argc, char *argv[] )
 			}
 			if (T[process_locker_number] == EMPTY)
 			{
-				printf("Process critical sex: %d.\n", process_sex);
 				T[process_locker_number] = process_sex;
 			}
 			else if (B[process_locker_number] && process_sex == T[process_locker_number])
