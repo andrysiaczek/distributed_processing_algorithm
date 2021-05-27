@@ -58,13 +58,6 @@ int main( int argc, char *argv[] )
 	// printf("%d: Liczba miejsc w szatni: %d, a liczba procesow: %d\n", rank, M, numtasks); #TODO remove line
 	while (1)
 	{
-		if (rank == 0) // TODO remove if
-		{
-			printf("Typ szatni 0: %d.\n", T[0]);
-			printf("Typ szatni 1: %d.\n", T[1]);
-			printf("Typ szatni 2: %d.\n", T[2]);
-		}
-
 		if (!try_critical && rand() % 4 == 0) // 25% chance to try to enter critical section
 		{
 			try_critical = TRUE; // from now on the process tries to get to critical section
