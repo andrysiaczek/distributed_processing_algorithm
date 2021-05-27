@@ -28,7 +28,7 @@ int main( int argc, char *argv[] )
 	char processor_name[MPI_MAX_PROCESSOR_NAME]; // the buffer for the processor name
 	int proc_namelen; // the length of the processor name
 	int request[2], consent, critical[2], release, block[2]; // buffers for different types of messages
-	int message[2]; // buffer to receive message with unknown tag
+	int message[3]; // buffer to receive message with unknown tag
 	int try_critical = FALSE; // set try to get to critical section to 0 - false
 	int chosen_locker = -1; // the number of the locker room the process is trying to access
 	int num_consents = -1; // the number of required consents to enter the critical section
@@ -158,6 +158,12 @@ int main( int argc, char *argv[] )
 			
 			int process_priority = message[0];
 			int process_locker_number = message[1];
+			int process_sex = message[3];
+
+			if (T[process_locker_number] == EMPTY)
+			{
+				T[process_locker_number] = process_sex;
+			}
 
 			if (process_locker_number == chosen_locker)
 			{
