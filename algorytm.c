@@ -108,7 +108,7 @@ void consent_message_received(int rank, int source_process, int *try_critical, i
 				}
 			}
 			*sum_critical += 1; // sum up all times when process got to the critical section
-			// printf("%d: Wszedłem do sekcji krytycznej w szatni: %d. Jest to moje %d wejście do sekcji krytycznej.\n", rank, chosen_locker, *sum_critical);
+			printf("%d: Wszedłem do sekcji krytycznej w szatni: %d. Jest to moje %d wejście do sekcji krytycznej.\n", rank, chosen_locker, *sum_critical);
 			// MPI_Waitall(tasks-1, reqs_send, status_send);
 
 			// #TODO czy wysylanie zgod dobrze zaimplementowane?
