@@ -30,6 +30,7 @@ int main( int argc, char *argv[] )
 	int request[3], consent, critical[2], release, block[2]; // buffers for different types of messages
 	int message[3]; // buffer to receive message with unknown tag
 	int try_critical = FALSE; // set try to get to critical section to 0 - false
+	int in_critical = FALSE; // if process in critical section
 	int chosen_locker = -1; // the number of the locker room the process is trying to access
 	int num_consents = -1; // the number of required consents to enter the critical section
 
@@ -58,7 +59,33 @@ int main( int argc, char *argv[] )
 	// printf("%d: Liczba miejsc w szatni: %d, a liczba procesow: %d\n", rank, M, numtasks); #TODO remove line
 	while (1)
 	{
-		if (!try_critical && rand() % 4 == 0) // 25% chance to try to enter critical section
+		if (in_critical > 0)
+		{
+			in_critical -= 1;
+
+			if (!in_critical)
+			{
+				for (int i = 0; i < numtasks; i++) // send release message to other processes
+				{
+					int minus = 0;
+					if (i != rank) // if not itself
+					{
+						release = chosen_locker;
+						// MPI_Isend(&release, 1, MPI_INT, i, RELEASE, MPI_COMM_WORLD, &reqs_send[i-minus]);
+						MPI_Send(&release, 1, MPI_INT, i, RELEASE, MPI_COMM_WORLD);
+						printf("%d: Wysyłam informację o zwolnieniu zasobów w szatni %d do procesu: %d.\n", rank, chosen_locker, i);
+					}
+					else
+					{
+						minus = 1;
+					}
+				}
+				printf("%d: Wyszłam z sekcji krytycznej w szatni: %d\n", rank, chosen_locker);
+				
+				// MPI_Waitall(numtasks-1, reqs_send, status_send);
+			}
+		}
+		else if (!try_critical && rand() % 4 == 0) // 25% chance to try to enter critical section
 		{
 			try_critical = TRUE; // from now on the process tries to get to critical section
 
@@ -232,27 +259,10 @@ int main( int argc, char *argv[] )
 					}
 					// MPI_Waitall(count+1, reqs_send, status_send);
 
-					sleep(rand() % 21); // sleep no longer than 20 seconds #TODO sleep function can't be used in critical section
-
-					for (int i = 0; i < numtasks; i++) // send release message to other processes
-					{
-						int minus = 0;
-						if (i != rank) // if not itself
-						{
-							release = chosen_locker;
-							// MPI_Isend(&release, 1, MPI_INT, i, RELEASE, MPI_COMM_WORLD, &reqs_send[i-minus]);
-							MPI_Send(&release, 1, MPI_INT, i, RELEASE, MPI_COMM_WORLD);
-							printf("%d: Wysyłam informację o zwolnieniu zasobów w szatni %d do procesu: %d.\n", rank, chosen_locker, i);
-						}
-						else
-						{
-							minus = 1;
-						}
-					}
-					printf("%d: Wyszłam z sekcji krytycznej w szatni: %d\n", rank, chosen_locker);
+					// sleep(rand() % 21); // sleep no longer than 20 seconds #TODO sleep function can't be used in critical section
+					in_critical = 100;
 					try_critical = FALSE;
 					priority = 0;
-					// MPI_Waitall(numtasks-1, reqs_send, status_send);
 				}
 			}
 		}
