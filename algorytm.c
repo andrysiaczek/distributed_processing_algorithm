@@ -35,7 +35,7 @@ void critical_section(int *critical_count, int tasks, int rank, int chosen_locke
 				minus = 1;
 			}
 		}
-		printf("%d: Wyszedłem z sekcji krytycznej w szatni: %d\n", rank, chosen_locker);
+		// printf("%d: Wyszedłem z sekcji krytycznej w szatni: %d\n", rank, chosen_locker);
 		
 		// MPI_Waitall(tasks-1, reqs_send, status_send); // #TODO remove line
 	}
