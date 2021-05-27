@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 #define REQUEST 0
 #define CONSENT 1
 #define RELEASE 2
@@ -16,7 +17,6 @@
 
 int main( int argc, char *argv[] )
 {
-    int sex = rand() % 2; // the sex of the process 0-male 1-female
     int priority = 0; // the priority of the process
     int L[3] = { 0 }; // the number of occupied lockers in each locker room
     int T[3] = { EMPTY, EMPTY, EMPTY }; // the type of each locker room (-1)-empty 0-male 1-female
@@ -44,7 +44,10 @@ int main( int argc, char *argv[] )
 	MPI_Status status_send[numtasks-1]; // the status of the message
 	MPI_Status status_rec[numtasks-1]; // the status of the message
 	MPI_Status status; // the status of the message
+
 	int flag; // the flag of the MPI_Iprobe test for a message
+	srand (time(NULL) + rank);
+    int sex = rand() % 2; // the sex of the process 0-male 1-female
 
 	int *consent_queue = (int *)malloc(sizeof(int)*numtasks); // the queue of overdue consents
 	for (int i = 0; i < numtasks; i++){ // initialize the consent_queue values with 0
