@@ -79,7 +79,7 @@ void request_message_received(int rank, int source_process, int *message, int *c
 	}
 }
 
-void consent_message_received(int rank, int source_process, int *try_critical, int *num_consents, int *priority, int tasks, int sex, int chosen_locker, int *overdue_consents, int *critical_count)
+void consent_message_received(int rank, int source_process, int *try_critical, int *num_consents, int *priority, int tasks, int sex, int chosen_locker, int *overdue_consents, int *critical_count, int *sum_critical)
 {
 	// printf("%d: Dostałem zgodę od procesu %d.\n", rank, source_process);
 
@@ -107,7 +107,8 @@ void consent_message_received(int rank, int source_process, int *try_critical, i
 					minus = 1;
 				}
 			}
-			printf("%d: Wszedłem do sekcji krytycznej w szatni: %d\n", rank, chosen_locker);
+			*sum_critical += 1; // sum up all times when process got to the critical section
+			printf("%d: Wszedłem do sekcji krytycznej w szatni: %d. Jest to moje %d wejście do sekcji krytycznej.\n", rank, chosen_locker, *sum_critical);
 			// MPI_Waitall(tasks-1, reqs_send, status_send);
 
 			// #TODO czy wysylanie zgod dobrze zaimplementowane?
@@ -203,6 +204,7 @@ int main( int argc, char *argv[] )
 	int message[3]; // buffer to receive message with unknown tag
 	int try_critical = FALSE; // initialize variable 'try to get to the critical section' to FALSE
 	int critical_count = 0; // how many iterations left to leave the critical section
+	int sum_critical = 0; // how many times in the critical section #TODO remove line
 	int chosen_locker = -1; // the number of the locker room the process is trying to access
 	int num_consents = -1; // the number of required consents to enter the critical section
 
@@ -340,7 +342,7 @@ int main( int argc, char *argv[] )
 			break;
 
 		case CONSENT:
-			consent_message_received(rank, status.MPI_SOURCE, &try_critical, &num_consents, &priority, tasks, sex, chosen_locker, overdue_consents, &critical_count);	
+			consent_message_received(rank, status.MPI_SOURCE, &try_critical, &num_consents, &priority, tasks, sex, chosen_locker, overdue_consents, &critical_count, &sum_critical);	
 			break;
 		
 		case RELEASE:
