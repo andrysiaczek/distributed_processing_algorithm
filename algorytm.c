@@ -145,7 +145,7 @@ int main( int argc, char *argv[] )
 		// printf("%d: Czekam na info od innych.\n", rank); #TODO remove line
 		if (flag)
 		{
-			MPI_Recv(&message, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+			MPI_Recv(&message, 3, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 		}
 		else
 		{
