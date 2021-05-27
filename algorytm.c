@@ -127,7 +127,7 @@ int main( int argc, char *argv[] )
 						minus = 1;
 					}
 				}
-				printf("%d: Próbuję dostać się do szatni: %d\n", rank, chosen_locker);
+				printf("%d: Próbuję dostać się do szatni: %d o typie: %d.\n", rank, chosen_locker, T[chosen_locker]);
 
 				if (B[chosen_locker] == 1 || T[chosen_locker] == EMPTY){
 					num_consents = numtasks-1;
