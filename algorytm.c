@@ -192,7 +192,6 @@ void block_message_received(int rank, int source_process, int process_priority, 
 
 int main( int argc, char *argv[] )
 {
-    int priority = 0; // the priority of the process
     int L[3] = { 0 }; // the number of occupied lockers in each locker room
     int T[3] = { EMPTY, EMPTY, EMPTY }; // the type of each locker room [empty/male/female]
 	int B[3] = { FALSE }; // if the locker rooms are blocked
@@ -221,6 +220,7 @@ int main( int argc, char *argv[] )
 	int flag; // the flag of the MPI_Iprobe test for a message
 	srand (time(NULL) + rank); // seed the random generator differently for each process
     int sex = rand() % 2; // the pseudo-randomly chosen sex of the process 0-MALE 1-FEMALE
+    int priority = rand() % 10; // the priority of the process - initialized with random number between 0-9
 
 	int *overdue_consents = (int *)malloc(sizeof(int)*tasks); // the queue of overdue consents
 	for (int i = 0; i < tasks; i++){ // initialize the overdue_consents values with 0
