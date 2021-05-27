@@ -192,6 +192,7 @@ int main( int argc, char *argv[] )
 			if (try_critical)
 			{
 				num_consents -= 1;
+				priority += 1;
 				if (num_consents == 0)
 				{
 					// critical section
@@ -233,12 +234,12 @@ int main( int argc, char *argv[] )
 						{
 							release = chosen_locker;
 							MPI_Isend(&release, 1, MPI_INT, i, RELEASE, MPI_COMM_WORLD, &reqs_send[i-minus]);
-							printf("%d: Wysyłam informację o zwolnieniu zasobów w szatni %d.\n", rank, chosen_locker);
 						}
 						else
 						{
 							minus = 1;
 						}
+						printf("%d: Wysyłam informację o zwolnieniu zasobów w szatni %d.\n", rank, chosen_locker);
 					}
 					printf("%d: Wyszłam z sekcji krytycznej w szatni: %d\n", rank, chosen_locker);
 					try_critical = FALSE;
