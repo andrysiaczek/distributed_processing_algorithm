@@ -84,6 +84,7 @@ void consent_message_received(int rank, int source_process, int *try_critical, i
 			if (T[chosen_locker] != EMPTY && T[chosen_locker] != sex)
 			{
 				*try_critical = FALSE;
+				printf("Nie udało się.\n");
 
 				int count = 0;
 				for (int i = 0; i < K; i++)
