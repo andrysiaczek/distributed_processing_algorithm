@@ -61,7 +61,7 @@ void request_message_received(int rank, int source_process, int *message, int *c
 		else
 		{
 			overdue_consents[source_process] = TRUE;
-			// printf("%d: Dopisuję proces %d do mojej oczekujacej listy.\n", rank, source_process); // #TODO remove line
+			printf("%d: Dopisuję proces %d do mojej oczekujacej listy.\n", rank, source_process); // #TODO remove line
 		}
 	}
 	else
