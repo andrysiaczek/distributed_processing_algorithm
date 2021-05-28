@@ -306,10 +306,7 @@ int main( int argc, char *argv[] )
 		if (flag)
 		{
 			MPI_Recv(&message, 3, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-		}
-		else
-		{
-			if (try_critical)
+						if (try_critical)
 			{
 				try_critical_count += 1;
 				if (try_critical_count == 10*K)
@@ -318,6 +315,9 @@ int main( int argc, char *argv[] )
 					try_critical = FALSE;
 				}
 			}
+		}
+		else
+		{
 			continue;
 		}
 		
