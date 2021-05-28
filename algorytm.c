@@ -213,7 +213,7 @@ int main( int argc, char *argv[] )
 
 	int *overdue_consents = (int *)malloc(sizeof(int)*K); // the queue of overdue consents
 	for (int i = 0; i < K; i++){ // initialize the overdue_consents values with 0
-		overdue_consents[i] = 0;
+		overdue_consents[i] = FALSE;
 	}
 
 	while (1)
