@@ -49,13 +49,6 @@ void request_message_received(int rank, int source_process, int *message, int *c
 		{
 			int consent;
 			MPI_Send(&consent, 0, MPI_INT, source_process, CONSENT, MPI_COMM_WORLD); // sending back consent
-
-			if (process_sex != sex) // if two processes with different sex want to enter the same locker room
-			{
-				T[*chosen_locker] = process_sex;
-				*try_critical = FALSE;
-				*chosen_locker = -1;
-			}
 		}
 		else
 		{
@@ -64,13 +57,12 @@ void request_message_received(int rank, int source_process, int *message, int *c
 	}
 	else // if no conflict
 	{
-		T[process_locker_number] = process_sex;
 		int consent;
 		MPI_Send(&consent, 0, MPI_INT, source_process, CONSENT, MPI_COMM_WORLD); // sending back consent
 	}
 }
 
-void consent_message_received(int rank, int source_process, int *try_critical, int *num_consents, int *priority, int K, int sex, int chosen_locker, int *overdue_consents, int *critical_count)
+void consent_message_received(int rank, int source_process, int *try_critical, int *num_consents, int *priority, int K, int sex, int chosen_locker, int *overdue_consents, int *critical_count, int *T)
 {
 	if (*try_critical)
 	{
@@ -78,6 +70,25 @@ void consent_message_received(int rank, int source_process, int *try_critical, i
 		*priority += 1;
 		if (*num_consents == 0)
 		{
+			if (T[chosen_locker] != EMPTY && T[chosen_locker] != sex)
+			{
+				*try_critical = FALSE;
+
+				for (int i = 0; i < K; i++) // send release messages to other processes
+				{
+					int minus = 0;
+					int release = chosen_locker;
+					if (i != rank) // if not itself
+					{
+						MPI_Send(&release, 1, MPI_INT, i, RELEASE, MPI_COMM_WORLD);
+					}
+					else
+					{
+						minus = 1;
+					}
+				}
+				return;
+			}
 			// critical section
 			for (int i = 0; i < K; i++) // send critical message to other processes
 			{
@@ -306,7 +317,7 @@ int main( int argc, char *argv[] )
 			break;
 
 		case CONSENT:
-			consent_message_received(rank, status.MPI_SOURCE, &try_critical, &num_consents, &priority, K, sex, chosen_locker, overdue_consents, &critical_count);	
+			consent_message_received(rank, status.MPI_SOURCE, &try_critical, &num_consents, &priority, K, sex, chosen_locker, overdue_consents, &critical_count, T);	
 			break;
 		
 		case RELEASE:
