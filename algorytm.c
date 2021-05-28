@@ -14,13 +14,13 @@
 #define FALSE 0
 #define TRUE 1
 
-void critical_section(int *critical_count, int tasks, int rank, int chosen_locker)
+void critical_section(int *critical_count, int K, int rank, int chosen_locker)
 {
 	*critical_count -= 1; // decrease critical section counter by 1 in each iteration
 
 	if (!*critical_count) // if critical_count equals 0
 	{
-		for (int i = 0; i < tasks; i++) // send release message to other processes
+		for (int i = 0; i < K; i++) // send release message to other processes
 		{
 			int minus = 0;
 			if (i != rank) // if not itself
@@ -37,7 +37,7 @@ void critical_section(int *critical_count, int tasks, int rank, int chosen_locke
 		}
 		// printf("%d: Wyszedłem z sekcji krytycznej w szatni: %d\n", rank, chosen_locker);
 		
-		// MPI_Waitall(tasks-1, reqs_send, status_send); // #TODO remove line
+		// MPI_Waitall(K-1, reqs_send, status_send); // #TODO remove line
 	}
 }
 
@@ -79,7 +79,7 @@ void request_message_received(int rank, int source_process, int *message, int *c
 	}
 }
 
-void consent_message_received(int rank, int source_process, int *try_critical, int *num_consents, int *priority, int tasks, int sex, int chosen_locker, int *overdue_consents, int *critical_count, int *sum_critical)
+void consent_message_received(int rank, int source_process, int *try_critical, int *num_consents, int *priority, int K, int sex, int chosen_locker, int *overdue_consents, int *critical_count, int *sum_critical)
 {
 	// printf("%d: Dostałem zgodę od procesu %d.\n", rank, source_process);
 
@@ -90,7 +90,7 @@ void consent_message_received(int rank, int source_process, int *try_critical, i
 		if (*num_consents == 0)
 		{
 			// critical section
-			for (int i = 0; i < tasks; i++) // send critical message to other processes
+			for (int i = 0; i < K; i++) // send critical message to other processes
 			{
 				int minus = 0;
 				if (i != rank) // if not itself
@@ -109,11 +109,11 @@ void consent_message_received(int rank, int source_process, int *try_critical, i
 			}
 			*sum_critical += 1; // sum up all times when process got to the critical section
 			printf("%d: Wszedłem do sekcji krytycznej w szatni: %d. Jest to moje %d wejście do sekcji krytycznej.\n", rank, chosen_locker, *sum_critical);
-			// MPI_Waitall(tasks-1, reqs_send, status_send);
+			// MPI_Waitall(K-1, reqs_send, status_send);
 
 			// #TODO czy wysylanie zgod dobrze zaimplementowane?
 			int count = 0;
-			for (int i = 0; i < tasks; i++)
+			for (int i = 0; i < K; i++)
 			{
 				if (overdue_consents[i]){
 					int consent;
@@ -194,16 +194,20 @@ void block_message_received(int rank, int source_process, int process_priority, 
 
 int main( int argc, char *argv[] )
 {
+	// local variables declaration
+	int rank; // task id (rank of the process)
+	int sex; // the pseudo-randomly chosen sex of the process 0-MALE 1-FEMALE
+	int priority; // the priority of the process
     int L[3] = { 0 }; // the number of occupied lockers in each locker room
     int T[3] = { EMPTY, EMPTY, EMPTY }; // the type of each locker room [empty/male/female]
 	int B[3] = { FALSE }; // if the locker rooms are blocked
-	char *arg = argv[1];
-  	int M = atoi(arg); // the number of lockers in each locker room, command line argument
-	int rank; // task id (rank of the process)
-	int tasks; // the number of all tasks (processes) running in MPI execution environment
+	int M; // the number of lockers in each locker room, command line argument	
+	int K; // the number of all tasks (processes) running in MPI execution environment
 	int request[3], consent, critical[2], release, block[2]; // buffers for different types of messages
 	int message[3]; // buffer to receive message with unknown tag
-	int try_critical = FALSE; // initialize variable 'try to get to the critical section' to FALSE
+	int flag; // the flag of the MPI_Iprobe test for a message
+
+	int try_critical = FALSE; // if the process tries to get to the critical section, initialize to FALSE
 	int critical_count = 0; // how many iterations left to leave the critical section
 	int chosen_locker = -1; // the number of the locker room the process is trying to access
 	int num_consents = -1; // the number of required consents to enter the critical section
@@ -211,45 +215,55 @@ int main( int argc, char *argv[] )
 	MPI_Init( &argc, &argv ); // initializes the MPI execution environment
 	
 	MPI_Comm_rank( MPI_COMM_WORLD, &rank ); // get the rank of the calling MPI process
-	MPI_Comm_size( MPI_COMM_WORLD, &tasks ); // get the number of available MPI tasks
+	MPI_Comm_size( MPI_COMM_WORLD, &K ); // get the number of available MPI K
 
-	MPI_Request reqs_send[tasks-1]; // the request number of the message // #TODO remove with non-blocking communication
-	MPI_Request reqs_rec[tasks-1]; // the request number of the message // #TODO remove with non-blocking communication
-	MPI_Status status_send[tasks-1]; // the status of the message // #TODO remove with non-blocking communication
-	MPI_Status status_rec[tasks-1]; // the status of the message // #TODO remove with non-blocking communication
 	MPI_Status status; // the status of the message
 
-	int flag; // the flag of the MPI_Iprobe test for a message
 	srand (time(NULL) + rank); // seed the random generator differently for each process
-    int sex = rand() % 2; // the pseudo-randomly chosen sex of the process 0-MALE 1-FEMALE
-    int priority = rand() % 10; // the priority of the process - initialized with random number between 0-9
-	// int priority = 0; // the priority of the process - initialized with 0
-	int *sum_critical = (int *)malloc(sizeof(int)*tasks); // how many times in the critical section #TODO remove line
+    sex = rand() % 2; // pseudo-randomly choose sex of the process 0-MALE 1-FEMALE
+	// priority = 0; // the priority of the process - initialized with 0
 
-	int *overdue_consents = (int *)malloc(sizeof(int)*tasks); // the queue of overdue consents
-	for (int i = 0; i < tasks; i++){ // initialize the overdue_consents values with 0
+	char *arg = argv[1];
+  	M = atoi(arg); // take the number of lockers in each locker room from command line
+
+	if ( K <= 3*M)
+	{
+		printf("Warunki zadania nie zostały spełnione. Liczba klientów musi być większa niż sumaryczna pojemność 3 szatni.\n");
+		return 0;
+	}
+
+	int *overdue_consents = (int *)malloc(sizeof(int)*K); // the queue of overdue consents
+	int *sum_critical = (int *)malloc(sizeof(int)*K); // how many times in the critical section #TODO remove line
+	for (int i = 0; i < K; i++){ // initialize the overdue_consents values with 0
 		overdue_consents[i] = 0;
 		sum_critical[i] = 0; // #TODO remove line
 	}
 
+	MPI_Request reqs_send[K-1]; // the request number of the message // #TODO remove with non-blocking communication
+	MPI_Request reqs_rec[K-1]; // the request number of the message // #TODO remove with non-blocking communication
+	MPI_Status status_send[K-1]; // the status of the message // #TODO remove with non-blocking communication
+	MPI_Status status_rec[K-1]; // the status of the message // #TODO remove with non-blocking communication
+    priority = rand() % 10; // pseudo-randomly choose the starting priority with random number between 0-9 // #TODO remove or not
+
 	printf("%d: Moja płeć: %d.\n", rank, sex);
-	// printf("%d: Liczba miejsc w szatni: %d, a liczba procesow: %d\n", rank, M, tasks); #TODO remove line
+	// printf("%d: Liczba miejsc w szatni: %d, a liczba procesów: %d\n", rank, M, K); #TODO remove line
 	while (1)
 	{
 		if (rank == 0) // #TODO remove if
 		{
-			for (int i = 0; i < tasks; i++)
+			for (int i = 0; i < K; i++)
 			{
 				printf("Proces %d był już %d razy w sekcji krytycznej.\n", i, sum_critical[i]);
 			}
 		}
 		if (critical_count > 0) // if process in the critical section
 		{
-			critical_section(&critical_count, tasks, rank, chosen_locker); // execute critical section code
+			critical_section(&critical_count, K, rank, chosen_locker); // execute critical section code
 		}
 		else if (!try_critical && rand() % 4 == 0) // 25% chance to try to enter critical section
 		{
 			try_critical = TRUE; // from now on the process tries to get to critical section
+			priority += 1;
 
 			for (int i = 0; i < sizeof(L)/sizeof(int); i++)  // iterate over locker rooms
 			{
@@ -280,10 +294,9 @@ int main( int argc, char *argv[] )
 						min_number = L[i];
 					}
 				}
-				for (int i = 0; i < tasks; i++) // send block message to other processes
+				for (int i = 0; i < K; i++) // send block message to other processes
 				{
 					int minus = 0;
-					priority += 1;
 					if (i != rank) // if not itself
 					{
 						block[0] = priority;
@@ -298,15 +311,14 @@ int main( int argc, char *argv[] )
 					}
 				}
 				// printf("%d: Zablokowałem szatnię nr: %d. Moja płeć to: %d\n", rank, chosen_locker, sex); // #TODO remove line
-				// MPI_Waitall(tasks-1, reqs_send, status_send);
-				num_consents = tasks-1;
+				// MPI_Waitall(K-1, reqs_send, status_send);
+				num_consents = K-1;
 			}
 			else
 			{
-				for (int i = 0; i < tasks; i++) // send request message to other processes
+				for (int i = 0; i < K; i++) // send request message to other processes
 				{
 					int minus = 0;
-					priority += 1;
 					if (i != rank) // if not itself
 					{
 						request[0] = priority;
@@ -324,14 +336,14 @@ int main( int argc, char *argv[] )
 				// printf("%d: Próbuję dostać się do szatni: %d o typie: %d.\n", rank, chosen_locker, T[chosen_locker]);
 
 				if (B[chosen_locker] == 1 || T[chosen_locker] == EMPTY){
-					num_consents = tasks-1;
+					num_consents = K-1;
 				}
 				else
 				{
-					num_consents = tasks - (M - L[chosen_locker]);
+					num_consents = K - (M - L[chosen_locker]);
 				}
 				// printf("%d: Czekam na dostarczenie moich żądań o wejście do szatni: %d.\n", rank, chosen_locker); #TODO remove line
-				// MPI_Waitall(tasks-1, reqs_send, status_send); // #TODO leave or remove?
+				// MPI_Waitall(K-1, reqs_send, status_send); // #TODO leave or remove?
 			}
 		}
 
@@ -353,7 +365,7 @@ int main( int argc, char *argv[] )
 			break;
 
 		case CONSENT:
-			consent_message_received(rank, status.MPI_SOURCE, &try_critical, &num_consents, &priority, tasks, sex, chosen_locker, overdue_consents, &critical_count, sum_critical);	
+			consent_message_received(rank, status.MPI_SOURCE, &try_critical, &num_consents, &priority, K, sex, chosen_locker, overdue_consents, &critical_count, sum_critical);	
 			break;
 		
 		case RELEASE:
