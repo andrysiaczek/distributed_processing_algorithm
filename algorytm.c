@@ -79,11 +79,11 @@ void consent_message_received(int rank, int source_process, int *try_critical, i
 	if (*try_critical)
 	{
 		*num_consents -= 1;
-		*priority += 1;
 		if (*num_consents == 0)
 		{
 			if (T[*chosen_locker] != EMPTY && T[*chosen_locker] != sex)
 			{
+				*priority += 1;
 				*try_critical = FALSE;
 				*chosen_locker = -1;
 				printf("%d: Nie udało się. Szatnia %d jest typu %d. Moja płeć: %d.\n", rank, *chosen_locker, T[*chosen_locker], sex);
@@ -272,7 +272,7 @@ int main( int argc, char *argv[] )
 		{
 			critical_section(&critical_count, K, rank, &chosen_locker); // execute critical section code
 		}
-		else if (!try_critical && rand() % 4 == 0) // 25% chance to try to enter critical section
+		else if (!try_critical && rand() % 10 == 0) // 10% chance to try to enter critical section
 		{
 			try_critical = TRUE; // from now on the process tries to get to critical section
 			priority += 1;
