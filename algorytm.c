@@ -43,7 +43,7 @@ void critical_section(int *critical_count, int K, int rank, int chosen_locker)
 
 void request_message_received(int rank, int source_process, int *message, int *chosen_locker, int priority, int sex, int *T, int *try_critical, int *overdue_consents)
 {
-	// printf("%d: Dostałem żądanie od procesu %d.\n", rank, source_process); // #TODO remove line
+	printf("%d: Dostałem żądanie od procesu %d.\n", rank, source_process); // #TODO remove line
 			
 	int process_priority = message[0];
 	int process_locker_number = message[1];
