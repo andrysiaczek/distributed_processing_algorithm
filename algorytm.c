@@ -230,7 +230,7 @@ int main( int argc, char *argv[] )
 
 	srand (time(NULL) + rank); // seed the random generator differently for each process
     sex = rand() % 2; // pseudo-randomly choose sex of the process 0-MALE 1-FEMALE
-	priority = 0; // the priority of the process - initialized with 0
+	priority = rand() % 20; // the priority of the process - initialized with 0
 
 	char *arg = argv[1];
   	M = atoi(arg); // take the number of lockers in each locker room from command line
