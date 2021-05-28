@@ -73,7 +73,7 @@ void request_message_received(int rank, int source_process, int *message, int *c
 
 void consent_message_received(int rank, int source_process, int *try_critical, int *num_consents, int *priority, int K, int sex, int chosen_locker, int *overdue_consents, int *critical_count, int *sum_critical, int *T)
 {
-	// printf("%d: Dostałem zgodę od procesu %d.\n", rank, source_process); // #TODO remove line
+	printf("%d: Dostałem zgodę od procesu %d.\n", rank, source_process); // #TODO remove line
 
 	if (*try_critical)
 	{
@@ -92,7 +92,7 @@ void consent_message_received(int rank, int source_process, int *try_critical, i
 						int consent;
 						// MPI_Isend(&consent, 0, MPI_INT, i, CONSENT, MPI_COMM_WORLD, &reqs_send[count]); // sending back overdue consent
 						MPI_Send(&consent, 0, MPI_INT, i, CONSENT, MPI_COMM_WORLD); // sending back overdue consent
-						// printf("%d: Rozsyłam zaległa zgodę dla procesu: %d.\n", rank, i); // #TODO remove line
+						printf("%d: Rozsyłam zaległa zgodę dla procesu: %d.\n", rank, i); // #TODO remove line
 						count++;
 					}
 				}
@@ -128,7 +128,7 @@ void consent_message_received(int rank, int source_process, int *try_critical, i
 					int consent;
 					// MPI_Isend(&consent, 0, MPI_INT, i, CONSENT, MPI_COMM_WORLD, &reqs_send[count]); // sending back overdue consent
 					MPI_Send(&consent, 0, MPI_INT, i, CONSENT, MPI_COMM_WORLD); // sending back overdue consent
-					// printf("%d: Rozsyłam zaległa zgodę dla procesu: %d.\n", rank, i); // #TODO remove line
+					printf("%d: Rozsyłam zaległa zgodę dla procesu: %d.\n", rank, i); // #TODO remove line
 					count++;
 				}
 			}
