@@ -62,7 +62,7 @@ void request_message_received(int rank, int source_process, int *message, int *c
 	}
 }
 
-void consent_message_received(int rank, int source_process, int *try_critical, int *num_consents, int *priority, int K, int sex, int chosen_locker, int *overdue_consents, int *critical_count, int *T)
+void consent_message_received(int rank, int source_process, int *try_critical, int *num_consents, int *priority, int K, int sex, int chosen_locker, int *overdue_consents, int *critical_count, int *T, int *try_critical_count)
 {
 	if (*try_critical)
 	{
@@ -119,6 +119,7 @@ void consent_message_received(int rank, int source_process, int *try_critical, i
 
 			*critical_count = 1000000;
 			*try_critical = FALSE;
+			*try_critical_count = 0;
 			*priority = 0;
 		}
 	}
@@ -185,6 +186,7 @@ int main( int argc, char *argv[] )
 	int flag; // the flag of the MPI_Iprobe test for a message
 
 	int try_critical = FALSE; // if the process tries to get to the critical section, initialize to FALSE
+	int try_critical_count = 0; // how many iterations already in try_critical
 	int critical_count = 0; // how many iterations left to leave the critical section
 	int chosen_locker = -1; // the number of the locker room the process is trying to access
 	int num_consents = -1; // the number of required consents to enter the critical section
@@ -304,6 +306,15 @@ int main( int argc, char *argv[] )
 		if (flag)
 		{
 			MPI_Recv(&message, 3, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+			if (try_critical)
+			{
+				try_critical_count += 1;
+				if (try_critical_count == 10*K)
+				{
+					try_critical_count = 0;
+					try_critical = FALSE;
+				}
+			}
 		}
 		else
 		{
@@ -317,7 +328,7 @@ int main( int argc, char *argv[] )
 			break;
 
 		case CONSENT:
-			consent_message_received(rank, status.MPI_SOURCE, &try_critical, &num_consents, &priority, K, sex, chosen_locker, overdue_consents, &critical_count, T);	
+			consent_message_received(rank, status.MPI_SOURCE, &try_critical, &num_consents, &priority, K, sex, chosen_locker, overdue_consents, &critical_count, T, &try_critical_count);	
 			break;
 		
 		case RELEASE:
